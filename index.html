@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div>
+        <input type="text" placeholder="title" id="title"> <br>
+        <input type="text" placeholder="description" id="description"> <br>
+        <button onclick="addTodo()">Add todo</button>
+
+        <div id="container">
+        </div>
+    </div>
+</body>
+
+<script>
+    let globalId = 1;
+    let oldTodolist;
+    let currentTodoList;
+
+    function markAsDone(id){
+        const parent = document.getElementById(id);
+        parent.children[2].innerHTML = "Done!";
+    }
+
+    function createChild(title, description, globalId){
+        const outerDiv = document.createElement("div");
+        const firstInnerDiv = document.createElement("div");
+        firstInnerDiv.innerHTML=title;
+        const secondInnerDiv = document.createElement("div");
+        secondInnerDiv.innerHTML = description;
+        const thisrdInnerDiv = document.createElement("button");
+        thisrdInnerDiv.innerHTML = "Mark as done";
+        thisrdInnerDiv.setAttribute("onclick", `markAsDone(${globalId})`);
+
+        outerDiv.appendChild(firstInnerDiv);
+        outerDiv.appendChild(secondInnerDiv);
+        outerDiv.appendChild(thisrdInnerDiv);
+        outerDiv.setAttribute("id", globalId);
+        return outerDiv;
+    }
+
+    /* 
+    * below function will help to create DOM from the details that get from server
+    * state will be an array
+    * every state have a title, description and id
+    */
+
+    function updateToDoListByServerData(state){
+        const parent = document.getElementById("container");
+        parent.innerHTML = "";
+        for (let i = 0; i < state.length; i++){
+            const child = createChild(state[i].title, state[i].descripton, state[i].id);
+            parent.appendChild(child);
+        }
+    }
+
+    window.setInterval(async function(){
+        const res = await fetch("https://sum-server.100xdevs.com/todos");
+        const json = await res.json();
+        updateToDoListByServerData(json.todos)
+    }, 10000)
+
+    function addTodo(){
+        const title = document.getElementById("title").value;
+        const description = document.getElementById("description").value;
+        //console.log(title + " | " + description);
+
+        //ugly way to do so
+        /* document.getElementById("container").innerHTML = `<div>
+                <div>${title}</div>
+                <div>${description}</div>
+                <button>Mark as done</button>
+            </div>` */
+
+        document.getElementById("container").appendChild(createChild(title, description, globalId));
+        globalId++;
+
+    }
+</script>
+
+</html>
